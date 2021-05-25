@@ -1,7 +1,11 @@
 package pers.tommas;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,14 +36,21 @@ public class GCTester {
         }
         printMemoryUsage(null);
 
+        String msg = "hold 80% holders";
         holders = new ArrayList<Holder>(TOTAL_HOLDER_COUNT);
-
         for (int i = 0,
              length = (int) (TOTAL_HOLDER_COUNT * 0.7),
              _20 = (int) (TOTAL_HOLDER_COUNT * 0.2),
              _50 = (int) (TOTAL_HOLDER_COUNT * 0.5);
              i < length; i++) {
-            holders.add(new Holder(holderSize));
+
+            try {
+                holders.add(new Holder(holderSize));
+            } catch (OutOfMemoryError e) {
+                msg = "OOM error occurs";
+                break;
+            }
+
             if (i == _20) {
                 printMemoryUsage("hold 20% holders");
             } else if (i == _50) {
@@ -47,7 +58,7 @@ public class GCTester {
             }
         }
 
-        printMemoryUsage("hold 80% holders");
+        printMemoryUsage(msg);
     }
 
     private void printMemoryUsage(String msg) {
@@ -61,6 +72,22 @@ public class GCTester {
     }
 
     public static void main(String[] args) {
-        new GCTester();
+        List<GarbageCollectorMXBean> beans = ManagementFactory.getGarbageCollectorMXBeans();
+        for (GarbageCollectorMXBean bean : beans) {
+            System.out.println(bean.getName());
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String s;
+        try {
+            while ((s = br.readLine()) != null) {
+                if ("s".equals(s) || "start".equals(s)) {
+                    new GCTester();
+                } else if ("q".equals(s) || "quit".equals(s))
+                    break;
+            }
+        } catch (Exception e) {
+            //
+        }
     }
 }
