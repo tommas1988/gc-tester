@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +25,22 @@ public class GCTester {
 
     public GCTester() {
         memoryBean = ManagementFactory.getMemoryMXBean();
+    }
+
+    public void run(int min) {
+        long stopAt = System.currentTimeMillis() + min * 60 *1000;
+        while (System.currentTimeMillis() < stopAt) {
+            try {
+                doRun();
+                Thread.sleep(1000);
+            } catch (Throwable e) {
+            }
+        }
+    }
+
+    private void doRun() {
         long heapSize = memoryBean.getHeapMemoryUsage().getMax();
-
         int holderSize = (int) (heapSize / TOTAL_HOLDER_COUNT);
-
         printMemoryUsage("create holders without hold their references");
         for (int i = 0; i < TOTAL_HOLDER_COUNT; i++) {
             new Holder(holderSize);
@@ -61,6 +72,10 @@ public class GCTester {
         printMemoryUsage(msg);
     }
 
+    private void clean() {
+
+    }
+
     private void printMemoryUsage(String msg) {
         if (msg != null) {
             System.out.println(msg + "\n");
@@ -82,7 +97,7 @@ public class GCTester {
         try {
             while ((s = br.readLine()) != null) {
                 if ("s".equals(s) || "start".equals(s)) {
-                    new GCTester();
+                    new GCTester().run(5);
                 } else if ("q".equals(s) || "quit".equals(s))
                     break;
             }

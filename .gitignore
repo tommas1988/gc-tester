@@ -1,4 +1,4 @@
-gc.log
+gc*.log
 *.iml
 .idea
 target
